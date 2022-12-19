@@ -75,7 +75,9 @@ public:
   void showWatchFace(bool partialRefresh);
   virtual void drawWatchFace(); // override this method for different watch
                                 // faces
-
+  virtual void faceButtonUp() {};
+  virtual void faceButtonDown() {};
+  
 private:
   void _bmaConfig();
   static void _configModeCallback(WiFiManager *myWiFiManager);

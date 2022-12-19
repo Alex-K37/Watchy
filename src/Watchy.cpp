@@ -12,6 +12,7 @@ RTC_DATA_ATTR bool BLE_CONFIGURED;
 RTC_DATA_ATTR weatherData currentWeather;
 RTC_DATA_ATTR int weatherIntervalCounter = -1;
 RTC_DATA_ATTR bool displayFullInit       = true;
+RTC_DATA_ATTR tmElements_t lastTime;
 
 void Watchy::init(String datetime) {
   esp_sleep_wakeup_cause_t wakeup_reason;
@@ -25,10 +26,13 @@ void Watchy::init(String datetime) {
                true); // 10ms by spec, and fast pulldown reset
   display.epd2.setBusyCallback(displayBusyCallback);
 
+  currentTime = lastTime;
+  
   switch (wakeup_reason) {
   case ESP_SLEEP_WAKEUP_EXT0: // RTC Alarm
     if (guiState == WATCHFACE_STATE) {
       RTC.read(currentTime);
+      lastTime = currentTime;
       showWatchFace(true); // partial updates on tick
     }
     break;
@@ -39,6 +43,7 @@ void Watchy::init(String datetime) {
     RTC.config(datetime);
     _bmaConfig();
     RTC.read(currentTime);
+    lastTime = currentTime;
     showWatchFace(false); // full update on reset
     break;
   }
@@ -133,6 +138,7 @@ void Watchy::handleButtonPress() {
       }
       showMenu(menuIndex, true);
     } else if (guiState == WATCHFACE_STATE) {
+      faceButtonUp();
       return;
     }
   }
@@ -145,6 +151,7 @@ void Watchy::handleButtonPress() {
       }
       showMenu(menuIndex, true);
     } else if (guiState == WATCHFACE_STATE) {
+      faceButtonDown();
       return;
     }
   }
