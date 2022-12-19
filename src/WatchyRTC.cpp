@@ -32,6 +32,10 @@ void WatchyRTC::clearAlarm() {
   if (rtcType == DS3231) {
     rtc_ds.alarm(DS3232RTC::ALARM_2);
   } else {
+    rtc_pcf.resetTimer();
+  }
+    
+  if (false) {
     int nextAlarmMinute = 0;
     rtc_pcf.clearAlarm(); // resets the alarm flag in the RTC
     nextAlarmMinute = rtc_pcf.getMinute();
@@ -130,6 +134,7 @@ void WatchyRTC::_PCFConfig(
   }
   // on POR event, PCF8563 sets month to 0, which will give an error since
   // months are 1-12
+  rtc_pcf.setTimer(rtc_pcf.TIMER_1MIN, 1);
   clearAlarm();
 }
 
