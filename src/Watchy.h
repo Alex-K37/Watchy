@@ -44,9 +44,11 @@ public:
   static GxEPD2_BW<WatchyDisplay, WatchyDisplay::HEIGHT> display;
   tmElements_t currentTime;
   watchySettings settings;
+  boolean enableMainLoop;
+  uint64_t wakeupBit;
 
 public:
-  explicit Watchy(const watchySettings &s) : settings(s) {} // constructor
+  explicit Watchy(const watchySettings &s) : settings(s), enableMainLoop(false) {} // constructor
   void init(String datetime = "");
   void deepSleep();
   static void displayBusyCallback(const void *);
@@ -55,7 +57,7 @@ public:
 
   void handleButtonPress();
   void showMenu(byte menuIndex, bool partialRefresh);
-  void showFastMenu(byte menuIndex);
+  void showFastMenu(byte menuIndex, byte oldMenuIndex);
   void showAbout();
   void showBuzz();
   void showAccelerometer();

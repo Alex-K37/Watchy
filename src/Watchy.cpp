@@ -37,7 +37,8 @@ void Watchy::init(String datetime) {
     }
     break;
   case ESP_SLEEP_WAKEUP_EXT1: // button Press
-    handleButtonPress();
+      wakeupBit = esp_sleep_get_ext1_wakeup_status();
+      handleButtonPress();
     break;
   default: // reset
     RTC.config(datetime);
@@ -47,7 +48,8 @@ void Watchy::init(String datetime) {
     showWatchFace(false); // full update on reset
     break;
   }
-  deepSleep();
+  if (!enableMainLoop)
+      deepSleep();
 }
 
 void Watchy::displayBusyCallback(const void *) {
@@ -79,7 +81,6 @@ void Watchy::deepSleep() {
 }
 
 void Watchy::handleButtonPress() {
-  uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
   // Menu Button
   if (wakeupBit & MENU_BTN_MASK) {
     if (guiState ==
@@ -214,20 +215,20 @@ void Watchy::handleButtonPress() {
       } else if (digitalRead(UP_BTN_PIN) == 1) {
         lastTimeout = millis();
         if (guiState == MAIN_MENU_STATE) { // increment menu index
-          menuIndex--;
+          byte omi = menuIndex--;
           if (menuIndex < 0) {
             menuIndex = MENU_LENGTH - 1;
           }
-          showFastMenu(menuIndex);
+          showFastMenu(menuIndex,omi);
         }
       } else if (digitalRead(DOWN_BTN_PIN) == 1) {
         lastTimeout = millis();
         if (guiState == MAIN_MENU_STATE) { // decrement menu index
-          menuIndex++;
+            byte omi = menuIndex++;
           if (menuIndex > MENU_LENGTH - 1) {
             menuIndex = 0;
           }
-          showFastMenu(menuIndex);
+          showFastMenu(menuIndex,omi);
         }
       }
     }
@@ -266,9 +267,9 @@ void Watchy::showMenu(byte menuIndex, bool partialRefresh) {
   guiState = MAIN_MENU_STATE;
 }
 
-void Watchy::showFastMenu(byte menuIndex) {
-  display.setFullWindow();
-  display.fillScreen(GxEPD_BLACK);
+void Watchy::showFastMenu(byte menuIndex, byte oldMenuIndex) {
+//  display.setFullWindow();
+//  display.fillScreen(GxEPD_BLACK);
   display.setFont(&FreeMonoBold9pt7b);
 
   int16_t x1, y1;
@@ -287,7 +288,9 @@ void Watchy::showFastMenu(byte menuIndex) {
       display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_WHITE);
       display.setTextColor(GxEPD_BLACK);
       display.println(menuItems[i]);
-    } else {
+    } else if (i == oldMenuIndex ){
+      display.getTextBounds(menuItems[i], 0, yPos, &x1, &y1, &w, &h);
+      display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_BLACK);
       display.setTextColor(GxEPD_WHITE);
       display.println(menuItems[i]);
     }
